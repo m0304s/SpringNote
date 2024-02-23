@@ -11,12 +11,14 @@ import springSecurity.spring.dto.sign_up.request.SignUpRequest;
 import springSecurity.spring.dto.sign_up.response.SignUpResponse;
 import springSecurity.spring.entity.Member;
 import springSecurity.spring.repository.MemberRepository;
+import springSecurity.spring.security.TokenProvider;
 
 @Service
 @RequiredArgsConstructor
 public class SignService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder encoder;
+    private final TokenProvider tokenProvider;
     @Transactional
     public SignUpResponse registMember(SignUpRequest request){
         Member member = memberRepository.save(Member.from(request,encoder));
@@ -27,11 +29,16 @@ public class SignService {
         }
         return SignUpResponse.from(member);
     }
-    @Transactional
-    public SignInResponse signIn(SignInRequest request){
+    @Transactional(readOnly = true)
+    public SignInResponse signIn(SignInRequest request) {
         Member member = memberRepository.findByAccount(request.account())
-                .filter(it -> it.getPassword().equals(request.password()))
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치히지 않습니다."));
-        return new SignInResponse(member.getName(),member.getType());
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+        if (!encoder.matches(request.password(), member.getPassword())) {
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+
+        String token = tokenProvider.createToken(String.format("%s:%s", member.getId(), member.getType()));
+        return new SignInResponse(member.getName(), member.getType(), token);
     }
 }
