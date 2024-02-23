@@ -36,3 +36,4 @@ public class MemberController {
         return ApiResponse.success(memberService.updateMember(UUID.fromString(user.getUsername()),request));
     }
 }
+
