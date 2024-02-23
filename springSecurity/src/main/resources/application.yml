@@ -1,4 +1,7 @@
 spring:
+  security:
+    user:
+      password: 1
   datasource:
     url: jdbc:h2:tcp://localhost/~/Desktop/Coding/SpringNote/SpringNote/security
     username: sa

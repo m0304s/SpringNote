@@ -2,6 +2,7 @@ package springSecurity.spring.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import springSecurity.spring.dto.sign_in.request.SignInRequest;
@@ -15,9 +16,10 @@ import springSecurity.spring.repository.MemberRepository;
 @RequiredArgsConstructor
 public class SignService {
     private final MemberRepository memberRepository;
+    private final PasswordEncoder encoder;
     @Transactional
     public SignUpResponse registMember(SignUpRequest request){
-        Member member = memberRepository.save(Member.from(request));
+        Member member = memberRepository.save(Member.from(request,encoder));
         try{
             memberRepository.flush();   //강제 호출(쿼리가 DB에 반영됨)
         }catch (DataIntegrityViolationException e){

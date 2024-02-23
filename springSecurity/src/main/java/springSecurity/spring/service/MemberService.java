@@ -1,6 +1,7 @@
 package springSecurity.spring.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import springSecurity.spring.dto.member.request.MemberUpdateRequest;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Service
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final PasswordEncoder encoder;
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(UUID id){
         return memberRepository.findById(id)
@@ -34,7 +36,7 @@ public class MemberService {
         return memberRepository.findById(id)
                 .filter(member -> member.getPassword().equals(request.password()))
                 .map(member -> {
-                    member.update(request);
+                    member.update(request,encoder);
                     return MemberUpdateResponse.of(true,member);
                 })
                 .orElseThrow(() -> new NoSuchElementException("아이디 또는 비밀번호가 일치하지 않습니다."));
