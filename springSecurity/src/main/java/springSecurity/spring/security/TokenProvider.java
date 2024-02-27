@@ -16,10 +16,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @PropertySource("classpath:jwt.yml")
 @Service
@@ -75,11 +72,16 @@ public class TokenProvider {
     @Transactional
     public String recreateAccessToken(String oldAccessToken) throws JsonProcessingException {
         String subject = decodeJwtPayloadSubject(oldAccessToken);
-        memberRefreshTokenRepository.findByMemberIdAndReissueCountLessThan(UUID.fromString(subject.split(":")[0]), reissueLimit)
-                .ifPresentOrElse(
-                        MemberRefreshToken::increaseReissueCount,
-                        () -> { throw new ExpiredJwtException(null, null, "Refresh token expired."); }
-                );
+        Optional<MemberRefreshToken> byMemberId = memberRefreshTokenRepository.findById(UUID.fromString(subject.split(":")[0]));
+        if(byMemberId.isPresent()){
+            MemberRefreshToken memberRefreshToken = byMemberId.get();
+            int reissueCount = memberRefreshToken.getReissueCount();
+            if(reissueCount+1L>reissueLimit){
+                throw new ExpiredJwtException(null,null,"Refresh token expired.");
+            }
+            memberRefreshToken.increaseReissueCount();
+            memberRefreshTokenRepository.save(memberRefreshToken);
+        }
         return createAccessToken(subject);
     }
 
@@ -87,7 +89,7 @@ public class TokenProvider {
     public void validateRefreshToken(String refreshToken, String oldAccessToken) throws JsonProcessingException {
         validateAndParseToken(refreshToken);
         String memberId = decodeJwtPayloadSubject(oldAccessToken).split(":")[0];
-        memberRefreshTokenRepository.findByMemberIdAndReissueCountLessThan(UUID.fromString(memberId), reissueLimit)
+        memberRefreshTokenRepository.findById(UUID.fromString(memberId))
                 .filter(memberRefreshToken -> memberRefreshToken.validateRefreshToken(refreshToken))
                 .orElseThrow(() -> new ExpiredJwtException(null, null, "Refresh token expired."));
     }

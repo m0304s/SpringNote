@@ -44,7 +44,7 @@ public class SignService {
         memberRefreshTokenRepository.findById(member.getId())
                 .ifPresentOrElse(
                         it -> it.updateRefreshToken(refreshToken),
-                        () -> memberRefreshTokenRepository.save(new MemberRefreshToken(member, refreshToken))
+                        () -> memberRefreshTokenRepository.save(new MemberRefreshToken(member.getId(), refreshToken))
                 );
         return new SignInResponse(member.getName(), member.getType(), accessToken, refreshToken);
     }
