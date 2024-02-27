@@ -1,4 +1,4 @@
-package springSecurity.spring.annotation;
+package springSecurity.spring.security;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -9,6 +9,5 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAuthority('ADMIN')")
-public @interface AdminAuthorize {}
-
+@PreAuthorize("hasAuthority('USER')")
+public @interface UserAuthorize {}

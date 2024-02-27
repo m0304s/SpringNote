@@ -23,7 +23,6 @@ public class AdminInitializer implements ApplicationRunner {
                 .password(encoder.encode("admin"))
                 .name("관리자")
                 .type(MemberType.ADMIN)
-                .createdAt(LocalDateTime.now())
                 .build());
     }
 }
